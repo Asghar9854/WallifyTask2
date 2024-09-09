@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">WallifyTask2</string>
+    <string name="name">Wallify</string>
 </resources>
