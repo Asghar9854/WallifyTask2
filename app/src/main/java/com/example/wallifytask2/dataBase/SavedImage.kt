@@ -6,7 +6,8 @@ import java.io.Serializable
 
 @Entity(tableName = "saved_images")
 data class savePhoto(
-    @PrimaryKey val id: Int,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val imgId: Int,
     val name: String,
     val imagePath: String
-): Serializable
+) : Serializable

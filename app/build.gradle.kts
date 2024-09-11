@@ -107,5 +107,7 @@ dependencies {
 
 
     implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("com.nabinbhandari.android:permissions:3.8")
+
 
 }

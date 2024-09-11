@@ -13,7 +13,7 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
-        const val DATABASE_NAME = "walifyDB"
+        const val DATABASE_NAME = "wallifyTask2"
         fun getDataBase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(

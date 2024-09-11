@@ -60,7 +60,7 @@ fun FetchApiData(
 ) {
     val apiKey = pixelApiKey
     val perPage = 16
-    val query = "nature"
+    val query = "Landscapes"
     val context = LocalContext.current
 
     if (context.isNetworkAvailable()) {
@@ -73,12 +73,11 @@ fun FetchApiData(
         val response by viewModel.apiResponse.observeAsState()
 
         Box(modifier = modifier.fillMaxSize()) {
-            // If the response is not null, show wallpapers
             response?.let {
                 SetDataOnRecyclerview(
                     photoList = it.photos,
                     navController = navController
-                ) // Pass the necessary data to your WallpaperCard composable
+                )
             }
             CircularIndeterminateProgressBar(isDisplay = loading)
         }

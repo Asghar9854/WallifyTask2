@@ -102,7 +102,10 @@ private fun saveImage(context: Context, photo: Photo, database: AppDatabase?) {
         onSuccess = { bitmap ->
             val path = context.saveImageToCacheStorage(bitmap)
             context.showToast("Image Saved Successfully")
-            insertDB(database, savePhoto(photo.id, photo.photographer, path))
+            insertDB(
+                database,
+                savePhoto(imgId = photo.id, name = photo.photographer, imagePath = path)
+            )
         },
         onError = {})
 }
