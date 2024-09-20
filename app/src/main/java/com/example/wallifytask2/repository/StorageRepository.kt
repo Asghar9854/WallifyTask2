@@ -3,19 +3,14 @@ package com.example.wallifytask2.repository
 import android.content.ContentUris
 import android.content.Context
 import android.os.Build
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.example.wallifytask2.model.ModelImages
-import com.example.wallifytask2.viewmodel.SavedModel
-import java.io.File
-import kotlin.math.log
+import com.example.wallifytask2.utils.SAVEDDIRECTORY
 
-class ImagesRepository {
+class StorageRepository {
 
-    suspend fun getAllStorageImages(context: Context): ArrayList<ModelImages> {
+    fun getAllStorageImages(context: Context): ArrayList<ModelImages> {
         val allImagesList: ArrayList<ModelImages> = ArrayList()
         val imageProjection = arrayOf(
             MediaStore.Images.Media.DISPLAY_NAME,
@@ -47,18 +42,8 @@ class ImagesRepository {
                         id
                     )
                     if (name != null && size != null && date != null) {
-                        allImagesList.add(
-                            ModelImages(
-                                id,
-                                name,
-                                size,
-                                date,
-                                contentUri.toString(),
-                                false
-                            )
-                        )
+                        allImagesList.add(ModelImages(id, name, size, date, contentUri.toString(),false))
                     }
-
 
                 }
             } ?: kotlin.run {
@@ -68,7 +53,8 @@ class ImagesRepository {
         return allImagesList
     }
 
-    suspend fun getSavedImages(context: Context): ArrayList<ModelImages> {
+
+    fun getSavedImages(context: Context): ArrayList<ModelImages> {
         val saveImagesList: ArrayList<ModelImages> = ArrayList()
 
         val imageSortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
@@ -89,7 +75,7 @@ class ImagesRepository {
             collection,
             imageProjection,
             MediaStore.Images.Media.DATA + " like ? ",
-            arrayOf("%Wallify%"),
+            arrayOf("%$SAVEDDIRECTORY%"),
             imageSortOrder
         )
         cursor.use {
@@ -117,7 +103,6 @@ class ImagesRepository {
                     }
 
                 }
-                Log.e("ImagePath>>>", "saved iamges:: " + saveImagesList.size.toString())
             } ?: kotlin.run {
                 Log.e("TAG", "Cursor is null!")
             }

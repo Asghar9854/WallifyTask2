@@ -21,5 +21,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "WallifyTask2"
-include(":app")
+include(":app",":permissions")
  

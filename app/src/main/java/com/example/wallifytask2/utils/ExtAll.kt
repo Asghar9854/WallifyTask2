@@ -1,11 +1,11 @@
 package com.example.wallifytask2.utils
 
-import android.app.Activity
 import android.app.WallpaperManager
 import android.content.ContentValues
 import android.content.Context
 import android.content.Context.CONNECTIVITY_SERVICE
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -26,18 +26,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.core.os.postDelayed
 import coil.ImageLoader
 import coil.request.ErrorResult
 import coil.request.ImageRequest
 import coil.request.SuccessResult
-import com.bumptech.glide.Glide
+import com.nabinbhandari.android.permissions.PermissionHandler
+import com.nabinbhandari.android.permissions.Permissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -46,21 +47,13 @@ import java.util.Locale
 
 var pixelApiKey = "9ybqmcDFACoAEsaStiwcLT2XRKkT0Sxww4XpWgBX8cEzRgrxMsmDPlle"
 
-var WALLPAPER_OBJ = "wallpaperObj"
+var SAVEDDIRECTORY = "WALLIFY"
 
+var onFileAdded: ((Boolean) -> Unit?)? = null
 
 fun Context.showToast(message: String) {
     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }
-
-fun Activity.getBitmapFromUrl(imageUrl: String): Bitmap? {
-    return Glide.with(this)
-        .asBitmap()
-        .load(imageUrl)
-        .submit()
-        .get()
-}
-
 
 fun urlToBitmap(
     imageURL: String,
@@ -95,33 +88,21 @@ fun urlToBitmap(
     }
 }
 
-
-fun Context.saveImageToCacheStorage(bitmap: Bitmap): String {
-    val file = File(cacheDir, "walify_${System.currentTimeMillis()}.png")
-    val fileOutputStream = FileOutputStream(file)
-    bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
-    fileOutputStream.flush()
-    fileOutputStream.close()
-    return file.path
-}
-
-
-
 fun Context.saveImageToPublicFolder(bitmap: Bitmap): String? {
-    val currentTime = System.currentTimeMillis()
-    val dataStamp = SimpleDateFormat("ddMMyyyy_HHmm", Locale.getDefault()).format(Date())
-    val saveImageName = "wallify_${currentTime}_$dataStamp.png"
-    val folderName = "Wallify"
     var fos: OutputStream? = null
     var filePath: String? = null
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, saveImageName)
+            put(MediaStore.MediaColumns.DISPLAY_NAME, uniqueFileName())
             put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
-            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DCIM}/$folderName")
+            put(
+                MediaStore.MediaColumns.RELATIVE_PATH,
+                "${Environment.DIRECTORY_DCIM}/$SAVEDDIRECTORY"
+            )
         }
-        val imageUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+        val imageUri =
+            contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
 
         fos = imageUri?.let { contentResolver.openOutputStream(it) }
 
@@ -129,13 +110,14 @@ fun Context.saveImageToPublicFolder(bitmap: Bitmap): String? {
         filePath = imageUri?.let { getRealPathFromURI(it) }
 
     } else {
-        val imagesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString() +
-                File.separator + folderName
+        val imagesDir =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString() +
+                    File.separator + SAVEDDIRECTORY
         val file = File(imagesDir)
         if (!file.exists()) {
             file.mkdir()
         }
-        val image = File(imagesDir, saveImageName)
+        val image = File(imagesDir, uniqueFileName())
         fos = FileOutputStream(image)
         MediaScanner(this, image)
         filePath = image.absolutePath // Get the file path
@@ -170,45 +152,6 @@ private fun Context.getRealPathFromURI(uri: Uri): String? {
     }
     return path
 }
-
-
-
-//fun Context.saveImageToPublicFolder(bitmap: Bitmap) {
-//    val currentTime = System.currentTimeMillis()
-//    val dataStamp = SimpleDateFormat("ddMMyyyy_HHmm", Locale.getDefault()).format(Date())
-//    val saveImageName = "wallify_${currentTime}_$dataStamp.png"
-//    val folderName = "Wallify"
-//    val fos: OutputStream?
-//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//        val contentValues = ContentValues()
-//        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, saveImageName)
-//        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
-//        contentValues.put(
-//            MediaStore.MediaColumns.RELATIVE_PATH,
-//            "${Environment.DIRECTORY_DCIM}/$folderName"
-//        )
-//        val imageUri =
-//            contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-//        fos = imageUri?.let { contentResolver.openOutputStream(it) }
-//    } else {
-//        val imagesDir = Environment.getExternalStoragePublicDirectory(
-//            Environment.DIRECTORY_DCIM
-//        ).toString() + File.separator + folderName
-//        val file = File(imagesDir)
-//        if (!file.exists()) {
-//            file.mkdir()
-//        }
-//        val image = File(imagesDir, saveImageName)
-//        fos = FileOutputStream(image)
-//        MediaScanner(this, image)
-//    }
-//   var  saved = fos?.let { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) } == true
-//    fos?.flush()
-//    fos?.close()
-//    Handler(Looper.getMainLooper()).postDelayed(0) {
-//        this.showToast("Save To Gallery")
-//    }
-//}
 
 fun setWallpaper(context: Context, bitmap: Bitmap, flagSystem: Int) {
     val wallpaperManager = WallpaperManager.getInstance(context)
@@ -268,3 +211,65 @@ fun CircularIndeterminateProgressBar(isDisplay: Boolean) {
         }
     }
 }
+
+
+fun Context.requestForStoragePermission(
+    permissions: Array<String>,
+    onComposeGranted: ((Boolean) -> Unit)? = null,
+) {
+    Permissions.check(this, permissions, null, null, object : PermissionHandler() {
+        override fun onGranted() {
+            onComposeGranted?.invoke(true)
+        }
+
+        override fun onDenied(context: Context?, deniedPermissions: ArrayList<String>?) {
+            super.onDenied(context, deniedPermissions)
+            onComposeGranted?.invoke(false)
+        }
+
+        override fun onBlocked(
+            context: Context?, blockedList: ArrayList<String>?
+        ): Boolean {
+            return super.onBlocked(context, blockedList)
+        }
+
+        override fun onJustBlocked(
+            context: Context?,
+            justBlockedList: ArrayList<String>?,
+            deniedPermissions: ArrayList<String>?
+        ) {
+            super.onJustBlocked(context, justBlockedList, deniedPermissions)
+        }
+    })
+
+}
+
+
+fun getBitmapFromUri(context: Context, uri: Uri): Bitmap? {
+    return try {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        BitmapFactory.decodeStream(inputStream)
+    } catch (e: IOException) {
+        e.printStackTrace()
+        null
+    }
+}
+
+
+fun createDestinationFile(): File {
+    val directory =
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+    val destinationFile = File(directory, SAVEDDIRECTORY)
+    if (!destinationFile.exists()) {
+        destinationFile.mkdirs()
+    }
+    return File(destinationFile, uniqueFileName())
+}
+
+fun uniqueFileName(): String {
+    val dataStamp = SimpleDateFormat("ddMMyyyy_HHmm", Locale.getDefault()).format(Date())
+    return "IMG_${System.currentTimeMillis()}_$dataStamp.jpg"
+}
+
+
+

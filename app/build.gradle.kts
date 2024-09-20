@@ -29,6 +29,13 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            //  isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -105,9 +112,14 @@ dependencies {
     // optional - Kotlin Extensions and Coroutines support for Room
     implementation("androidx.room:room-ktx:2.6.1")
 
-
+    //Coil for imageLoading
     implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("com.nabinbhandari.android:permissions:3.8")
+//CameraC
+    implementation("androidx.camera:camera-core:1.3.1")
+    implementation("androidx.camera:camera-camera2:1.3.1")
+    implementation("androidx.camera:camera-view:1.3.1")
+
+    implementation(project(":permissions"))
 
 
 }

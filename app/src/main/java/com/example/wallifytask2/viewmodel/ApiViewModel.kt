@@ -6,24 +6,33 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.wallifytask2.model.PixelsResponse
-import com.example.wallifytask2.repository.MainRepository
+import com.example.wallifytask2.repository.ApiRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class MainViewModel : ViewModel() {
-    private val repository: MainRepository = MainRepository()
+class ApiViewModel : ViewModel() {
+    private val repository: ApiRepository = ApiRepository()
 
     private val _response = MutableLiveData<PixelsResponse>()
     val apiResponse: LiveData<PixelsResponse> get() = _response
 
     val loading = mutableStateOf(false)
-    fun wallpapers(apiKey: String, query: String, perPage: Int) {
-        viewModelScope.launch {
-            loading.value = true
-            delay(2000)
-            _response.value = repository.getWallpapers(apiKey, query, perPage)
 
-            loading.value = false
+    // Error State
+    val error = mutableStateOf<String?>(null)
+
+
+    fun wallpapers(apiKey: String, query: String, perPage: Int) {
+        loading.value = true
+        error.value = null
+        viewModelScope.launch {
+            try {
+                _response.value = repository.getWallpapers(apiKey, query, perPage)
+            } catch (e: Exception) {
+                error.value = "Error loading data"
+            } finally {
+                loading.value = false
+            }
         }
     }
 
