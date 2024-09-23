@@ -1,6 +1,6 @@
-package com.example.wallifytask2.network
+package com.example.wallifytask2.data.network
 
-import com.example.wallifytask2.model.PixelsResponse
+import com.example.wallifytask2.domain.model.PixelsResponse
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Query

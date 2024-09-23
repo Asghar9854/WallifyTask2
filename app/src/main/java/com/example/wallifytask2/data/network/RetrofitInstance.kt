@@ -1,4 +1,4 @@
-package com.example.wallifytask2.network
+package com.example.wallifytask2.data.network
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

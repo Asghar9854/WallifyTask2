@@ -3,10 +3,11 @@ package com.example.wallifytask2.ui.preview
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -43,6 +44,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -54,16 +56,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.wallifytask2.R
-import com.example.wallifytask2.model.Photo
+import com.example.wallifytask2.domain.model.Photo
 import com.example.wallifytask2.utils.MediaScanner
 import com.example.wallifytask2.utils.createDestinationFile
-import com.example.wallifytask2.utils.getBitmapFromUri
+import com.example.wallifytask2.utils.requestForStoragePermission
 import com.example.wallifytask2.utils.saveImageToPublicFolder
+import com.example.wallifytask2.utils.showToast
 import com.example.wallifytask2.utils.urlToBitmap
 import com.example.wallifytask2.viewmodel.ApiViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -109,110 +113,106 @@ fun ApiPreviewScreen(index: Int, navController: NavHostController, viewModel: Ap
                         }
                     }, colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.White)
                 )
-            },
-            content = { padding ->
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Column(
+            }
+        ) { padding ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                ) {
+                    Row(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(padding)
+                            .weight(0.9f)
+                            .padding(8.dp)
                     ) {
-                        Row(
+                        //button back
+                        Image(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                            contentDescription = "previous",
+                            colorFilter = ColorFilter.tint(Color.White),
                             modifier = Modifier
-                                .weight(0.9f)
-                                .padding(8.dp)
-                        ) {
-                            //button back
-                            Image(
-                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                                contentDescription = "previous",
-                                colorFilter = ColorFilter.tint(Color.White),
-                                modifier = Modifier
-                                    .weight(0.1f)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.primary,
-                                        shape = CircleShape
-                                    )
-                                    .padding(5.dp)
-                                    .align(Alignment.CenterVertically)
-                                    .clickable {
-                                        if (pagerState.currentPage > 0) {
-                                            val prevPageIndex = pagerState.currentPage - 1
-                                            scope.launch {
-                                                pagerState.animateScrollToPage(
-                                                    prevPageIndex
-                                                )
-                                            }
-                                        }
-                                    })
-
-                            HorizontalPager(
-                                state = pagerState, modifier = Modifier
-                                    .weight(0.8f)
-                                    .fillMaxHeight()
-                                    .padding(horizontal = 5.dp)
-                            ) { page ->
-                                Image(
-                                    painter = rememberAsyncImagePainter(
-                                        model = ImageRequest.Builder(context)
-                                            .data(imagesList[page].src.original)
-                                            .crossfade(false)
-                                            .build()
-                                    ),
-                                    modifier = Modifier
-                                        .fillMaxHeight(),
-                                    contentDescription = "Full Screen Wallpaper",
-                                    contentScale = ContentScale.FillBounds
+                                .weight(0.1f)
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = CircleShape
                                 )
-                            }
-
-
-                            //button Next
-                            Image(
-                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                contentDescription = "next",
-                                colorFilter = ColorFilter.tint(Color.White),
-                                modifier = Modifier
-                                    .weight(0.1f)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.primary,
-                                        shape = CircleShape
-                                    )
-                                    .padding(5.dp)
-                                    .align(Alignment.CenterVertically)
-                                    .clickable {
-                                        if (pagerState.currentPage < pagerState.pageCount - 1) {
-                                            val nextPageIndex = pagerState.currentPage + 1
-                                            scope.launch {
-                                                pagerState.animateScrollToPage(
-                                                    nextPageIndex
-                                                )
-                                            }
+                                .padding(5.dp)
+                                .align(Alignment.CenterVertically)
+                                .clickable {
+                                    if (pagerState.currentPage > 0) {
+                                        val prevPageIndex = pagerState.currentPage - 1
+                                        scope.launch {
+                                            pagerState.animateScrollToPage(
+                                                prevPageIndex
+                                            )
                                         }
                                     }
-                            )
+                                })
 
+                        HorizontalPager(
+                            state = pagerState, modifier = Modifier
+                                .weight(0.8f)
+                                .fillMaxHeight()
+                                .padding(horizontal = 5.dp)
+                        ) { page ->
+                            AsyncImage(
+                                model = imagesList[page].src.portrait,
+                                modifier = Modifier
+                                    .fillMaxHeight(),
+                                contentDescription = "Full Screen Wallpaper",
+                                contentScale = ContentScale.FillBounds
+                            )
                         }
 
 
-                        Column(
+                        //button Next
+                        Image(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "next",
+                            colorFilter = ColorFilter.tint(Color.White),
                             modifier = Modifier
-                                .weight(0.2f)
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp)
-                                .background(Color.White),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                .weight(0.1f)
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = CircleShape
+                                )
+                                .padding(5.dp)
+                                .align(Alignment.CenterVertically)
+                                .clickable {
+                                    if (pagerState.currentPage < pagerState.pageCount - 1) {
+                                        val nextPageIndex = pagerState.currentPage + 1
+                                        scope.launch {
+                                            pagerState.animateScrollToPage(
+                                                nextPageIndex
+                                            )
+                                        }
+                                    }
+                                }
+                        )
+
+                    }
+
+
+                    Column(
+                        modifier = Modifier
+                            .weight(0.2f)
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp)
+                            .background(Color.White),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .weight(0.1f)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Row(
+                            OutlinedButton(
                                 modifier = Modifier
-                                    .weight(0.1f)
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                OutlinedButton(
-                                    modifier = Modifier
-                                        .weight(1f),
-                                    onClick = {
+                                    .weight(1f),
+                                onClick = {
+                                    context.saveFun {
                                         scope.launch {
                                             isSavingImages.value = true
                                             savingProgress.value = 0f
@@ -230,31 +230,26 @@ fun ApiPreviewScreen(index: Int, navController: NavHostController, viewModel: Ap
                                                 }
                                             }
                                         }
-
-//                                        scope.launch {
-//                                            withContext(Dispatchers.IO) {
-//                                                saveImage(
-//                                                    context,
-//                                                    imagesList[pagerState.currentPage]
-//                                                )
-//                                            }
-//                                        }
                                     }
-                                )
-                                {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_download),
-                                        contentDescription = "save Image"
-                                    )
-                                    Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-                                    Text(text = "Save")
-                                }
 
-                                //Compress Image
-                                OutlinedButton(
-                                    modifier = Modifier
-                                        .weight(1f),
-                                    onClick = {
+                                }
+                            )
+                            {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_download),
+                                    contentDescription = "save Image"
+                                )
+                                Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                                Text(text = "Save")
+                            }
+
+                            //Compress Image
+                            OutlinedButton(
+                                modifier = Modifier
+                                    .weight(1f),
+                                onClick = {
+
+                                    context.saveFun {
                                         scope.launch {
                                             isSavingImages.value = true
                                             savingProgress.value = 0f // Reset progress
@@ -272,37 +267,31 @@ fun ApiPreviewScreen(index: Int, navController: NavHostController, viewModel: Ap
                                                 }
                                             }
                                         }
-
-//                                            scope.launch {
-//                                                saveImage(
-//                                                    context = context,
-//                                                    photo = imagesList[pagerState.currentPage],
-//                                                    compress = true
-//                                                )
-//                                            }
                                     }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_compress),
-                                        contentDescription = "Compress"
-                                    )
-                                    Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-                                    Text(text = "Compress")
                                 }
-                            }
-
-
-                            Row(
-                                modifier = Modifier
-                                    .weight(0.1f)
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                //Save All Images
-                                OutlinedButton(
-                                    modifier = Modifier
-                                        .weight(1f),
-                                    onClick = {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_compress),
+                                    contentDescription = "Compress"
+                                )
+                                Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                                Text(text = "Compress")
+                            }
+                        }
+
+
+                        Row(
+                            modifier = Modifier
+                                .weight(0.1f)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            //Save All Images
+                            OutlinedButton(
+                                modifier = Modifier
+                                    .weight(1f),
+                                onClick = {
+                                    context.saveFun{
                                         saveJob.value = scope.launch {
                                             isSavingImages.value = true
                                             savingProgress.value = 0f // Reset progress
@@ -329,35 +318,24 @@ fun ApiPreviewScreen(index: Int, navController: NavHostController, viewModel: Ap
                                                 }
                                             }
                                         }
+                                    }
+                                },
+                                enabled = !isSavingImages.value
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_saveall),
+                                    contentDescription = "Save All"
+                                )
+                                Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                                Text(text = "Save All", modifier = Modifier)
+                            }
 
-//                                        scope.launch {
-//                                            isLoading.value = true
-//                                            withContext(Dispatchers.IO) {
-//                                                imagesList.forEach { photo ->
-//                                                    saveImage(context, photo, compress = false)
-//                                                }
-//                                                withContext(Dispatchers.Main) {
-//                                                    //isLoading.value = false
-//                                                }
-//                                            }
-//                                        }
-                                    },
-                                    enabled = !isSavingImages.value
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_saveall),
-                                        contentDescription = "Save All"
-                                    )
-                                    Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-                                    Text(text = "Save All", modifier = Modifier)
-                                }
-
-                                //Compress All Images
-                                OutlinedButton(
-                                    modifier = Modifier
-                                        .weight(1f),
-                                    onClick = {
-
+                            //Compress All Images
+                            OutlinedButton(
+                                modifier = Modifier
+                                    .weight(1f),
+                                onClick = {
+                                    context.saveFun{
                                         saveJob.value = scope.launch {
                                             isSavingImages.value = true
                                             savingProgress.value = 0f // Reset progress
@@ -384,29 +362,22 @@ fun ApiPreviewScreen(index: Int, navController: NavHostController, viewModel: Ap
                                                 }
                                             }
                                         }
-
-//                                        scope.launch {
-//                                            withContext(Dispatchers.IO) {
-//                                                imagesList.forEach { photo ->
-//                                                    saveImage(context, photo, compress = true)
-//                                                }
-//                                            }
-//                                        }
                                     }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_compress),
-                                        contentDescription = "Compress All"
-                                    )
-                                    Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-                                    Text(text = "Compress All")
                                 }
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_compress),
+                                    contentDescription = "Compress All"
+                                )
+                                Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                                Text(text = "Compress All")
                             }
                         }
                     }
-                    ProgressBar(isDisplay = isSavingImages.value)
                 }
-            })
+                ProgressBar(isDisplay = isSavingImages.value)
+            }
+        }
     }
 
     if (isSavingImages.value) {
@@ -479,31 +450,17 @@ fun ProgressBar(isDisplay: Boolean) {
 }
 
 
-private fun saveImage(
-    context: Context,
-    photo: Photo,
-    compress: Boolean = false
-) {
-    val permissions = arrayOf(
-        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        Manifest.permission.READ_EXTERNAL_STORAGE
-    )
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-        com.nabinbhandari.android.permissions.Permissions.check(
-            context,
-            permissions,
-            null,
-            null,
-            object : PermissionHandler() {
-                override fun onGranted() {
-                    saveToGallery(context, photo, compress)
-                }
-            })
+fun Context.saveFun(isPermissionGranted: (() -> Unit)? = null) {
+    Log.d("TAG", "saveFun: ${isCheckPermission(this)}")
+    if (isCheckPermission(this)) {
+        isPermissionGranted?.invoke()
     } else {
-        saveToGallery(context, photo, compress)
+        requestForStoragePermission(permissionsToRequest) {
+            isPermissionGranted?.invoke()
+            showToast("Permission Granted")
+        }
     }
 }
-
 
 fun saveImage(
     context: Context,
@@ -511,57 +468,23 @@ fun saveImage(
     quality: Int = 100,
     onProgressUpdate: (Float) -> Unit = {}
 ) {
-    val permissions = arrayOf(
-        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        Manifest.permission.READ_EXTERNAL_STORAGE
-    )
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-        com.nabinbhandari.android.permissions.Permissions.check(
-            context,
-            permissions,
-            null,
-            null,
-            object : PermissionHandler() {
-                override fun onGranted() {
-                    urlToBitmap(
-                        photo.src.original,
-                        context,
-                        onSuccess = { bitmap ->
-                            bitmap.let {
-                                val destinationFile = createDestinationFile()
-                                FileOutputStream(destinationFile).use { outputStream ->
-                                    val isSaved = it.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
-                                    MediaScanner(context, destinationFile)
-                                    if (isSaved) {
-                                        onProgressUpdate(1f)
-                                    }
-                                }
-                            }
-                        },
-                        onError = {})
-                }
-            })
-    } else {
-        urlToBitmap(
-            photo.src.original,
-            context,
-            onSuccess = { bitmap ->
-                bitmap.let {
-                    val destinationFile = createDestinationFile()
-                    FileOutputStream(destinationFile).use { outputStream ->
-                        val isSaved = it.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
-                        MediaScanner(context, destinationFile)
-
-                        if (isSaved) {
-                            onProgressUpdate(1f)
-                        }
+    urlToBitmap(
+        photo.src.original,
+        context,
+        onSuccess = { bitmap ->
+            bitmap.let {
+                val destinationFile = createDestinationFile()
+                FileOutputStream(destinationFile).use { outputStream ->
+                    val isSaved = it.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+                    MediaScanner(context, destinationFile)
+                    if (isSaved) {
+                        onProgressUpdate(1f)
                     }
                 }
-            },
-            onError = {})
-    }
+            }
+        },
+        onError = {})
 }
-
 
 
 fun saveToGallery(
@@ -590,3 +513,20 @@ fun compressBitmap(bitmap: Bitmap): Bitmap {
     val inputStream = ByteArrayInputStream(byteArray)
     return BitmapFactory.decodeStream(inputStream, null, null)!!
 }
+
+val permissionsToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
+} else {
+    arrayOf(
+        Manifest.permission.READ_EXTERNAL_STORAGE,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE
+    )
+}
+
+
+fun isCheckPermission(context: Context) = ContextCompat.checkSelfPermission(
+    context,
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+        Manifest.permission.READ_MEDIA_IMAGES
+    else Manifest.permission.READ_EXTERNAL_STORAGE
+) == PackageManager.PERMISSION_GRANTED

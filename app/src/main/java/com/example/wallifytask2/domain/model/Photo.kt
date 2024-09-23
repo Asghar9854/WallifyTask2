@@ -1,4 +1,4 @@
-package com.example.wallifytask2.model
+package com.example.wallifytask2.domain.model
 
 import java.io.Serializable
 

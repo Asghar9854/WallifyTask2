@@ -5,14 +5,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.wallifytask2.model.PixelsResponse
-import com.example.wallifytask2.repository.ApiRepository
-import kotlinx.coroutines.delay
+import com.example.wallifytask2.domain.model.PixelsResponse
+import com.example.wallifytask2.data.repository.ApiRepository
 import kotlinx.coroutines.launch
 
-class ApiViewModel : ViewModel() {
-    private val repository: ApiRepository = ApiRepository()
-
+class ApiViewModel(val repository: ApiRepository) : ViewModel() {
     private val _response = MutableLiveData<PixelsResponse>()
     val apiResponse: LiveData<PixelsResponse> get() = _response
 

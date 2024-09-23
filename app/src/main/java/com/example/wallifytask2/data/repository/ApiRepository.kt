@@ -1,7 +1,7 @@
-package com.example.wallifytask2.repository
+package com.example.wallifytask2.data.repository
 
-import com.example.wallifytask2.model.PixelsResponse
-import com.example.wallifytask2.network.RetrofitInstance
+import com.example.wallifytask2.domain.model.PixelsResponse
+import com.example.wallifytask2.data.network.RetrofitInstance
 
 class ApiRepository {
     suspend fun getWallpapers(apiKey: String, query: String, perPage: Int): PixelsResponse {

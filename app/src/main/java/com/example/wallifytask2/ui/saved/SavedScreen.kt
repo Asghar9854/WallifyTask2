@@ -34,7 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.wallifytask2.model.ModelImages
+import com.example.wallifytask2.domain.model.ModelImages
 import com.example.wallifytask2.ui.storage.isCheckPermission
 import com.example.wallifytask2.utils.requestForStoragePermission
 import com.example.wallifytask2.viewmodel.StorageViewModel

@@ -5,8 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.wallifytask2.model.ModelImages
-import com.example.wallifytask2.repository.StorageRepository
+import com.example.wallifytask2.domain.model.ModelImages
+import com.example.wallifytask2.data.repository.StorageRepository
 import kotlinx.coroutines.launch
 
 class StorageViewModel : ViewModel() {

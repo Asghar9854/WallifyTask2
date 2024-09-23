@@ -121,5 +121,9 @@ dependencies {
 
     implementation(project(":permissions"))
 
+    debugImplementation(libs.leakcanary.android)
+
+
+    implementation(libs.koin.androidx.compose)
 
 }

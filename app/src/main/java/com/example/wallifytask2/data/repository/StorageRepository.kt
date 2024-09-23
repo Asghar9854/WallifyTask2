@@ -1,11 +1,11 @@
-package com.example.wallifytask2.repository
+package com.example.wallifytask2.data.repository
 
 import android.content.ContentUris
 import android.content.Context
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
-import com.example.wallifytask2.model.ModelImages
+import com.example.wallifytask2.domain.model.ModelImages
 import com.example.wallifytask2.utils.SAVEDDIRECTORY
 
 class StorageRepository {

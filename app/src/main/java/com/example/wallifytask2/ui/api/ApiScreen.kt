@@ -8,16 +8,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -26,9 +26,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import com.example.wallifytask2.model.Photo
+import com.example.wallifytask2.domain.model.Photo
 import com.example.wallifytask2.utils.isNetworkAvailable
 import com.example.wallifytask2.utils.pixelApiKey
 import com.example.wallifytask2.viewmodel.ApiViewModel
@@ -40,16 +41,15 @@ fun ApiScreen(
     navController: NavController,
     modifier: Modifier
 ) {
-    val apiKey = pixelApiKey
-    val perPage = 16
-    val query = "Landscapes"
     val context = LocalContext.current
     if (context.isNetworkAvailable()) {
         val response by viewModel.apiResponse.observeAsState()
         val loading by viewModel.loading
         val error by viewModel.error
 
-
+        LaunchedEffect(Unit) {
+            viewModel.wallpapers(pixelApiKey, "random", 16)
+        }
         Box(modifier = modifier.fillMaxSize()) {
             when {
                 loading -> {
@@ -80,10 +80,10 @@ fun ApiScreen(
 @Composable
 fun SetDataOnRecyclerview(photoList: List<Photo>, navController: NavController) {
     val imageList = mutableListOf(photoList)
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(2),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalItemSpacing = 16.dp,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         imageList.forEach {
@@ -106,18 +106,12 @@ fun SingleItemMain(photo: Photo, navController: NavController, index: Int) {
         }
     ) {
         Column {
-            Image(
-                painter = rememberAsyncImagePainter(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(photo.src.large)
-                        .crossfade(true)
-                        .build()
-                ),
+            AsyncImage(
+                model = photo.src.large,
                 contentDescription = "Wallpapers",
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.FillWidth,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
+                    .fillMaxSize()
             )
         }
     }

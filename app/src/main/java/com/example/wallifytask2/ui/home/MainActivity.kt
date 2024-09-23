@@ -23,31 +23,30 @@ import com.example.wallifytask2.utils.pixelApiKey
 import com.example.wallifytask2.utils.showToast
 import com.example.wallifytask2.viewmodel.ApiViewModel
 import com.example.wallifytask2.viewmodel.StorageViewModel
+import org.koin.android.ext.android.inject
+import org.koin.java.KoinJavaComponent.inject
 import java.io.File
 
 
 class MainActivity : ComponentActivity() {
-    private val viewModel: ApiViewModel by viewModels<ApiViewModel>()
-    private val imagesViewModel: StorageViewModel by viewModels<StorageViewModel>()
-    var directoryFileObserver: DirectoryFileObserver? = null
+
+    private val viewModel: ApiViewModel by inject()
+    private val imagesViewModel: StorageViewModel by inject()
+    private var directoryFileObserver: DirectoryFileObserver? = null
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val directory =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
         val destinationFile = File(directory, SAVEDDIRECTORY)
         val aboslutePath: String = destinationFile.absolutePath
-        directoryFileObserver =DirectoryFileObserver(aboslutePath)
+        directoryFileObserver = DirectoryFileObserver(aboslutePath)
         directoryFileObserver?.startWatching()
-
 
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
-            val perPage = 16
-            val query = "Landscapes"
-            LaunchedEffect(Unit) {
-                viewModel.wallpapers(pixelApiKey, query, perPage)
-            }
             AppHost(
                 navController,
                 viewModel,
@@ -59,7 +58,7 @@ class MainActivity : ComponentActivity() {
 
     private val backPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            showToast("backPressedCallback")
+            finish()
         }
     }
 }

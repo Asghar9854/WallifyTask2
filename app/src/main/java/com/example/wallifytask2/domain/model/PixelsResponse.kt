@@ -1,4 +1,4 @@
-package com.example.wallifytask2.model
+package com.example.wallifytask2.domain.model
 
 data class PixelsResponse(
     val next_page: String,

@@ -363,61 +363,59 @@ fun StoragePreviewScreen(
                         }
 
                     }
-
-
-                    if (isSavingImages.value) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 30.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(
-                                        color = Color.White,
-                                        shape = RoundedCornerShape(16.dp)
-                                    )
-                                    .border(
-                                        width = 2.dp,
-                                        Color.Red,
-                                        shape = RoundedCornerShape(16.dp)
-                                    )
-                                    .padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            ) {
-                                Text(
-                                    text = "Saving Images",
-                                    fontSize = 16.sp,
-                                    color = Color.Black,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                androidx.compose.material3.CircularProgressIndicator(
-                                    modifier = Modifier.size(40.dp),
-                                    color = MaterialTheme.colorScheme.primary,
-                                    progress = savingProgress.value
-                                )
-                                Text(text = "${(savingProgress.value * 100).toInt()}%")
-
-                                OutlinedButton(
-                                    modifier = Modifier.align(Alignment.End),
-                                    onClick = {
-                                        saveJob.value?.cancel() // Cancel the saving process
-                                        isSavingImages.value = false
-                                        savingProgress.value = 0f
-                                    }
-                                ) {
-                                    Text(text = "Cancel")
-                                }
-                            }
-                        }
-
-                    }
                 }
             }
         )
+    }
+
+    if (isSavingImages.value) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 30.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = Color.White,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .border(
+                        width = 2.dp,
+                        Color.Red,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = "Saving Images",
+                    fontSize = 16.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold
+                )
+                androidx.compose.material3.CircularProgressIndicator(
+                    modifier = Modifier.size(40.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    progress = savingProgress.value
+                )
+                Text(text = "${(savingProgress.value * 100).toInt()}%")
+
+                OutlinedButton(
+                    modifier = Modifier.align(Alignment.End),
+                    onClick = {
+                        saveJob.value?.cancel() // Cancel the saving process
+                        isSavingImages.value = false
+                        savingProgress.value = 0f
+                    }
+                ) {
+                    Text(text = "Cancel")
+                }
+            }
+        }
     }
 }
 
